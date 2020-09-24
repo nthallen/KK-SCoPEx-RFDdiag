@@ -1,0 +1,79 @@
+TM "Receive" RFDdiag 1;
+
+TM typedef uint16_t mfc_t { text "%5u"; }
+TM typedef uint8_t RFD_Stat_t { text "%3u"; }
+
+TM typedef uint32_t INT_PACKETS_t { text "%10u"; }
+TM typedef uint32_t INT_BYTES_t { text "%10u"; }
+TM typedef int32_t LATENCY_t { text "%7.3lf"; }
+TM typedef uint32_t TOTAL_PACKETS_t { text "%10u"; }
+TM typedef uint32_t TOTAL_BYTES_t { text "%10u"; }
+TM typedef uint32_t RECEIVE_t { text "%10u"; }
+
+TM 1 Hz mfc_t L2R_Packet_size;
+TM 1 Hz mfc_t L2R_Packet_rate;
+TM 1 Hz mfc_t R2L_Packet_size;
+TM 1 Hz mfc_t R2L_Packet_rate;
+
+TM 1 Hz INT_PACKETS_t L2R_Int_packets_tx;
+TM 1 Hz INT_BYTES_t L2R_Int_bytes_tx;
+TM 1 Hz TOTAL_PACKETS_t L2R_Total_packets_tx;
+TM 1 Hz INT_PACKETS_t L2R_Int_packets_rx;
+TM 1 Hz LATENCY_t L2R_Int_min_latency;
+TM 1 Hz LATENCY_t L2R_Int_mean_latency;
+TM 1 Hz LATENCY_t L2R_Int_max_latency;
+TM 1 Hz INT_BYTES_t L2R_Int_bytes_rx;
+TM 1 Hz TOTAL_PACKETS_t L2R_Total_valid_packets_rx;
+TM 1 Hz TOTAL_PACKETS_t L2R_Total_invalid_packets_rx;
+TM 1 Hz RECEIVE_t L2R_Receive_SN;
+
+TM 1 Hz INT_PACKETS_t R2L_Int_packets_tx;
+TM 1 Hz INT_BYTES_t R2L_Int_bytes_tx;
+TM 1 Hz TOTAL_PACKETS_t R2L_Total_packets_tx;
+TM 1 Hz INT_PACKETS_t R2L_Int_packets_rx;
+TM 1 Hz LATENCY_t R2L_Int_min_latency;
+TM 1 Hz LATENCY_t R2L_Int_mean_latency;
+TM 1 Hz LATENCY_t R2L_Int_max_latency;
+TM 1 Hz INT_BYTES_t R2L_Int_bytes_rx;
+TM 1 Hz TOTAL_PACKETS_t R2L_Total_valid_packets_rx;
+TM 1 Hz TOTAL_PACKETS_t R2L_Total_invalid_packets_rx;
+TM 1 Hz RECEIVE_t R2L_Receive_SN;
+
+TM 1 Hz RFD_Stat_t RFD_Stale;
+
+group RFDgroup(L2R_Packet_size, L2R_Packet_rate, R2L_Packet_size, R2L_Packet_rate, L2R_Int_packets_tx, L2R_Int_bytes_tx, L2R_Total_packets_tx, L2R_Int_packets_rx, L2R_Int_min_latency, L2R_Int_mean_latency, L2R_Int_max_latency, L2R_Int_bytes_rx, L2R_Total_valid_packets_rx, L2R_Total_invalid_packets_rx, L2R_Receive_SN, R2L_Int_packets_tx, R2L_Int_bytes_tx, R2L_Total_packets_tx, R2L_Int_packets_rx, R2L_Int_min_latency, R2L_Int_mean_latency, R2L_Int_max_latency, R2L_Int_bytes_rx, R2L_Total_valid_packets_rx, R2L_Total_invalid_packets_rx, R2L_Receive_SN, RFD_Stale) {
+
+  L2R_Packet_size = RFDdiag.L2R.Packet_size;
+  L2R_Packet_rate = RFDdiag.L2R.Packet_rate;
+  R2L_Packet_size = RFDdiag.R2L.Packet_size;
+  R2L_Packet_rate = RFDdiag.R2L.Packet_rate;
+
+  L2R_Int_packets_tx = RFDdiag.L2R.Int_packets_tx;
+  L2R_Int_bytes_tx = RFDdiag.L2R.Int_bytes_tx;
+  L2R_Total_packets_tx = RFDdiag.L2R.Total_packets_tx;
+  L2R_Int_packets_rx = RFDdiag.L2R.Int_packets_rx;
+  L2R_Int_min_latency = RFDdiag.L2R.Int_min_latency;
+  L2R_Int_mean_latency = RFDdiag.L2R.Int_mean_latency;
+  L2R_Int_max_latency = RFDdiag.L2R.Int_max_latency;
+  L2R_Int_bytes_rx = RFDdiag.L2R.Int_bytes_rx;
+  L2R_Total_valid_packets_rx = RFDdiag.L2R.Total_valid_packets_rx;
+  L2R_Total_invalid_packets_rx = RFDdiag.L2R.Total_invalid_packets_rx;
+  L2R_Receive_SN = RFDdiag.L2R.Receive_SN;
+  
+  R2L_Int_packets_tx = RFDdiag.R2L.Int_packets_tx;
+  R2L_Int_bytes_tx = RFDdiag.R2L.Int_bytes_tx;
+  R2L_Total_packets_tx = RFDdiag.R2L.Total_packets_tx;
+  R2L_Int_packets_rx = RFDdiag.R2L.Int_packets_rx;
+  R2L_Int_min_latency = RFDdiag.R2L.Int_min_latency;
+  R2L_Int_mean_latency = RFDdiag.R2L.Int_mean_latency;
+  R2L_Int_max_latency = RFDdiag.R2L.Int_max_latency;
+  R2L_Int_bytes_rx = RFDdiag.R2L.Int_bytes_rx;
+  R2L_Total_valid_packets_rx = RFDdiag.R2L.Total_valid_packets_rx;
+  R2L_Total_invalid_packets_rx = RFDdiag.R2L.Total_invalid_packets_rx;
+  R2L_Receive_SN = RFDdiag.R2L.Receive_SN;
+  
+  RFD_Stale = RFDdiag_obj->Stale(255);
+  RFDdiag_obj->synch();
+}
+
+TM 0 Hz mfc_t MFCtr, Synch;

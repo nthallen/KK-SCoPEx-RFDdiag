@@ -1,0 +1,22 @@
+Moduledef RFDdiag {
+  Comments about this driver
+}
+
+mode (default) {
+  # tmcbase = driver.tmc:driver.tmc.in
+  # cmdbase = pmc_base.cmd:pmc_base.cmd.in
+  # colbase = driver_col.tmc:driver_col.tmc.in
+  # genuibase = driver.genui
+  # - : driver.tbl:driver.tbl.in
+  DISTRIB = RFDdiag
+  OBJ = RFDdiag
+  CPPFLAGS = -I @MODDIR@/..
+  %%
+.PHONY : clean-RFDdiag build-RFDdiag
+RFDdiag : build-RFDdiag
+	cd @MODDIR@/.. && make RFDdiag
+	cp @MODDIR@/../RFDdiag RFDdiag
+clean-dist : clean-RFDdiag
+clean-RFDdiag :
+	cd @MODDIR@/.. && make clean
+}

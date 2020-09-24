@@ -1,0 +1,4 @@
+%{
+  #include "RFDdiag.h"
+  RFDdiag_t RFDdiag;
+%}
