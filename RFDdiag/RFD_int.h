@@ -1,22 +1,23 @@
 #ifndef RFD_INT_H_INCLUDED
 #define RFD_INT_H_INCLUDED
 #include <stdint.h>
-#include "dasio/interface.h"
+#include "dasio/serial.h"
 #include "dasio/tm_tmr.h"
 #include "dasio/cmd_reader.h"
 #include "RFDdiag.h"
 
 extern bool allow_remote_commands;
-extern const char *remote_ip, *rx_port, *tx_port;
+extern const char *rfd_port;
 void RFDdiag_init_options(int argc, char **argv);
 
+#define RFD_SYNCH_0 0xC5
+#define RFD_SYNCH_1 0xB7
+
 typedef struct __attribute__((packed)) {
-  uint16_t Command_bytes;
+  /** Synchronization chars */
+  uint8_t Synch[2];
   /** Requested size of packet, in bytes */
   uint16_t Packet_size;
-  uint16_t Packet_rate;
-  /** Number of packets transmitted during last second */
-  uint16_t Int_packets_tx;
   /** The SN of this packet */
   uint32_t Transmit_SN;
   /** The SN of the last packet received */
@@ -39,32 +40,33 @@ typedef struct __attribute__((packed)) {
   uint32_t Total_valid_packets_rx;
   /** Total invalid packets received */
   uint32_t Total_invalid_packets_rx;
+
+  /** Requested Packet Rate in packets/sec */
+  uint16_t Packet_rate;
+  /** Number of packets transmitted during last second */
+  uint16_t Int_packets_tx;
+  /** Length of command, if any.
+      Commands start at the Remainder field */
+  uint16_t Command_bytes;
   uint8_t  Remainder[2];
   // All the padding and commands go in before the CRC
 } RFDdiag_packet;
 
-class RFD_interface : public DAS_IO::Interface {
-  public:
-    inline RFD_interface(const char *name, int bufsz) :
-      DAS_IO::Interface(name, bufsz) {}
-  protected:
-    uint16_t crc_calc(uint8_t *buf, int len);
-    int32_t get_timestamp();
-};
-
 class RFD_tmr;
-class RFD_receiver;
 
-class RFD_transmitter : public RFD_interface {
+class RFD_interface : public DAS_IO::Serial {
   public:
-    RFD_transmitter(const char *rmt_ip, const char *rmt_port,
-      RFD_tmr *tmr);
-    bool parse_command(char *cmd, unsigned cmdlen);
+    RFD_interface(const char *name, const char *rfd_port, RFD_tmr *tmr);
+    // From transmitter:
+    bool parse_command(unsigned char *cmd, unsigned cmdlen);
     bool transmit(uint16_t n_pkts);
     bool tm_sync_too();
   protected:
+    uint16_t crc_calc(uint8_t *buf, int len);
+    int32_t get_timestamp();
+    // From transmitter:
     void crc_set();
-    RFDdiag_packet *pkt;
+    RFDdiag_packet *opkt;
     uint32_t L2R_Int_packets_tx;
     uint32_t L2R_Int_bytes_tx;
     uint32_t Int_packets_tx;
@@ -76,19 +78,15 @@ class RFD_transmitter : public RFD_interface {
     uint8_t L2R_command[8];
     static const int max_packet_size = 8000;
     RFD_tmr *tmr;
-    RFD_receiver *rx;
-};
-
-class RFD_receiver : public RFD_interface {
-  public:
-    RFD_receiver(const char *port, bool allow_remote_commands, RFD_transmitter *tx);
-  protected:
+    // RFD_receiver *rx;
+    
+    // From receiver
     bool protocol_input();
     bool tm_sync();
     bool crc_ok();
     const char *recv_port;
     bool allow_remote_commands;
-    RFD_transmitter *tx;
+    // RFD_transmitter *tx;
     RFDdiag_packet *pkt;
     uint32_t R2L_Total_packets_rx;
     uint32_t R2L_Total_valid_packets_rx;
@@ -98,24 +96,23 @@ class RFD_receiver : public RFD_interface {
     int32_t  R2L_Int_max_latency;
     uint32_t R2L_Int_bytes_rx;
     int32_t  R2L_latencies;
-    // uint32_t L2R_Int_packets_tx;
 };
 
 class RFD_cmd : public DAS_IO::Cmd_reader {
   public:
-    RFD_cmd(RFD_transmitter *tx);
+    RFD_cmd(RFD_interface *tx);
   protected:
     bool protocol_input();
-    RFD_transmitter *tx;
+    RFD_interface *tx;
 };
 
 class RFD_tmr : public DAS_IO::tm_tmr {
   public:
     RFD_tmr();
-    void set_transmitter(RFD_transmitter *tx);
+    void set_transmitter(RFD_interface *tx);
   protected:
     bool protocol_input();
-    RFD_transmitter *tx;
+    RFD_interface *tx;
 };
 
 #endif
