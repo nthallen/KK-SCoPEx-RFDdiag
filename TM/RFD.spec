@@ -1,5 +1,5 @@
 tmcbase = base.tmc
-tmcbase = /usr/local/share/linkeng/flttime.tmc
+tmcbase = /usr/local/share/monarch/modules/flttime.tmc
 colbase = RFDdiag_col.tmc
 cmdbase = RFD.cmd
 # genuibase = rf.genui
