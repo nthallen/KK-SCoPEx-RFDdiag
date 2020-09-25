@@ -1,3 +1,4 @@
 *.o
+RFDdiag
 RFDdiag.exe
 RFDdiagoui.cc

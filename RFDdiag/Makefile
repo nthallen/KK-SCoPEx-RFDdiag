@@ -1,5 +1,5 @@
 .PHONY : all clean
-LDFLAGS = -L/usr/local/lib
+LDFLAGS = -L/usr/local/lib -lpthread
 LIBS += -ldasio -lnl
 #CXXFLAGS += -fdiagnostics-color=always
 CXXFLAGS=-g
