@@ -9,6 +9,7 @@ RFDdispnc.cc
 RFDdispncoui.cc
 RFDdispnc.o
 RFDdispncoui.o
+doit.dep
 RFDcmd.cc
 RFDcmd.dat
 RFDcmd.h
@@ -26,5 +27,6 @@ displaytblnc.tmc.dep
 Makefile
 RFDcol
 RFDdispnc
+doit
 RFDcltnc
 RFDsrvr

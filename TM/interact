@@ -1,0 +1,19 @@
+  case `hostname` in
+    easwhlpt3425080) tty_rfd=/dev/ttyS8;;
+    dpops) tty_rfd=/dev/ttyS0;;
+    *) tty_rfd=/dev/ttyS0;;
+  esac
+  if [ ! -c $tty_rfd ]; then
+    launch_err="Device '$tty_rfd' not found or not a device"
+    msg -ninteract $launch_err
+  fi
+  
+  Launch      memo     memo -o $Experiment.log -l4
+              [ -z "$launch_err" ] &&
+                msg -nflight "Running script interact"
+  Launch      tm_bfr   bfr -s Unix
+
+  Launch      -TMC-  lgr -N `mlf_find LOG`
+  Launch      tm_gen RFDcol -v
+  Launch      cmd    RFDsrvr -v
+  Launch      -      RFDdiag -v -p $tty_rfd
