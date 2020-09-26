@@ -6,7 +6,7 @@
 #include "dasio/cmd_reader.h"
 #include "RFDdiag.h"
 
-extern bool allow_remote_commands;
+extern bool allow_rmt_commands;
 extern const char *rfd_port;
 void RFDdiag_init_options(int argc, char **argv);
 

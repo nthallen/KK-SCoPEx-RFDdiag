@@ -32,7 +32,7 @@ RFD_interface::RFD_interface(const char *name,
         L2R_command_len(0),
         tmr(tmr),
         // From receiver:
-        allow_remote_commands(allow_remote_commands),
+        allow_remote_commands(allow_rmt_commands),
         R2L_Total_packets_rx(0),
         R2L_Total_valid_packets_rx(0),
         R2L_Total_invalid_packets_rx(0),
@@ -330,7 +330,7 @@ bool RFD_tmr::protocol_input() {
   return  tx ? tx->transmit(n_pkts) : false;
 }
 
-bool allow_remote_commands = false;
+bool allow_rmt_commands = false;
 const char *rfd_port;
 
 void RFDdiag_init_options(int argc, char **argv) {
@@ -340,7 +340,7 @@ void RFDdiag_init_options(int argc, char **argv) {
   opterr = 0;
   while ((optltr = getopt(argc, argv, opt_string)) != -1) {
     switch (optltr) {
-      case 'c': allow_remote_commands = true; break;
+      case 'c': allow_rmt_commands = true; break;
       case 'p': rfd_port = optarg; break;
       case '?':
         msg(3, "Unrecognized Option -%c", optopt);
