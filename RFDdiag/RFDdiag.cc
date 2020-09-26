@@ -109,6 +109,7 @@ bool RFD_interface::parse_command(unsigned char *cmd, unsigned cmdlen) {
         } else {
           report_ok(nc);
           if (newval != L2R_Packet_rate) {
+            L2R_Packet_rate = newval;
             msg(MSG_DEBUG, "%s R:%u", src, L2R_Packet_rate);
             int per_nsecs = L2R_Packet_rate == 0 ? 0 :
               (1000000000/(int)L2R_Packet_rate);
