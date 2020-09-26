@@ -85,6 +85,7 @@ bool RFD_interface::parse_command(unsigned char *cmd, unsigned cmdlen) {
     unsigned int save_nc = nc;
     unsigned int save_cp = cp;
     buf = cmd ? cmd : (unsigned char *)&(pkt->Remainder);
+    const char *src = cmd ? "remote" : "local";
     cp = 0;
     nc = cmdlen;
     switch (buf[0]) {
@@ -94,6 +95,7 @@ bool RFD_interface::parse_command(unsigned char *cmd, unsigned cmdlen) {
           consume(nc);
         } else {
           report_ok(nc);
+	  msg(MSG_DEBUG, "%s S:%u", src, L2R_Packet_size);
         }
         break;
       case 'R':
@@ -102,6 +104,7 @@ bool RFD_interface::parse_command(unsigned char *cmd, unsigned cmdlen) {
           consume(nc);
         } else {
           report_ok(nc);
+	  msg(MSG_DEBUG, "%s R:%u", src, L2R_Packet_rate);
           int per_nsecs = L2R_Packet_rate == 0 ? 0 :
             (1000000000/(int)L2R_Packet_rate);
           tmr->settime(per_nsecs);
@@ -109,6 +112,7 @@ bool RFD_interface::parse_command(unsigned char *cmd, unsigned cmdlen) {
         break;
       case 'Q':
         report_ok(nc);
+	msg(MSG_DEBUG, "%s Q", src);
         rv = true;
         break;
       case 'X':
