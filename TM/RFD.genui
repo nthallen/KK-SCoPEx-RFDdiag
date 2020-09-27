@@ -1,0 +1,40 @@
+HEADER RFD 900 Diagnostic
+MNEMONIC rfd
+HOMEDIR RFD_DATA_DIR
+
+1 L2R_Packet_rate    L2R Pkts_per_sec rate
+1 L2R_Int_packets_tx L2R Pkts_per_sec tx
+1 L2R_Int_packets_rx L2R Pkts_per_sec rx
+
+1 L2R_Int_bytes_tx L2R Bytes_per_sec
+1 L2R_Int_bytes_rx L2R Bytes_per_sec
+
+1 L2R_Int_min_latency  L2R Latency min
+1 L2R_Int_mean_latency L2R Latency mean
+1 L2R_Int_max_latency  L2R Latency max
+
+1 L2R_Total_packets_tx         Totals Packets R2L_tx
+1 L2R_Total_valid_packets_rx   Totals Packets R2L_valid
+1 L2R_Total_invalid_packets_rx Totals Packets R2L_invalid
+
+1 R2L_Packet_rate    R2L Pkts_per_sec rate
+1 R2L_Int_packets_tx R2L Pkts_per_sec tx
+1 R2L_Int_packets_rx R2L Pkts_per_sec rx
+
+1 R2L_Int_bytes_tx R2L Bytes_per_sec
+1 R2L_Int_bytes_rx R2L Bytes_per_sec
+
+1 R2L_Int_min_latency  R2L Latency min
+1 R2L_Int_mean_latency R2L Latency mean
+1 R2L_Int_max_latency  R2L Latency max
+
+1 R2L_Total_packets_tx         Totals Packets R2L_tx
+1 R2L_Total_valid_packets_rx   Totals Packets R2L_valid
+1 R2L_Total_invalid_packets_rx Totals Packets R2L_invalid
+
+1 L2R_Packet_size Status Size
+1 L2R_Receive_SN Status SN
+
+1 R2L_Packet_size Status Size
+1 R2L_Receive_SN Status SN
+1 RFD_Stale Status Stale

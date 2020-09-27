@@ -19,6 +19,13 @@ RFDcltncoui.o
 RFDsrvr.o
 RFDsrvroui.cc
 RFDsrvroui.o
+RFDengext.cdf
+RFDengextcdf.oui
+RFDengextcdf.tmc
+RFDengext.cc
+RFDengextoui.cc
+RFDengext.o
+RFDengextoui.o
 displaytblnc.tmc.dep
 *.err
 *.o
@@ -30,3 +37,4 @@ RFDdispnc
 doit
 RFDcltnc
 RFDsrvr
+RFDengext
