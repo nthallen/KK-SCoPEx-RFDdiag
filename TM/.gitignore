@@ -9,6 +9,18 @@ RFDdispnc.cc
 RFDdispncoui.cc
 RFDdispnc.o
 RFDdispncoui.o
+RFDalgoa.tmc
+RFDalgo.cc
+RFDalgooui.cc
+RFDalgo.o
+RFDalgooui.o
+RFDjsonext.cdf
+RFDjsonextcdf.oui
+RFDjsonextcdf.tmc
+RFDjsonext.cc
+RFDjsonextoui.cc
+RFDjsonext.o
+RFDjsonextoui.o
 doit.dep
 RFDcmd.cc
 RFDcmd.dat
@@ -34,6 +46,8 @@ displaytblnc.tmc.dep
 Makefile
 RFDcol
 RFDdispnc
+RFDalgo
+RFDjsonext
 doit
 RFDcltnc
 RFDsrvr

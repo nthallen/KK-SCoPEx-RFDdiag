@@ -12,7 +12,8 @@ DISTRIB = interact
 
 RFDcol :
 RFDdisp : display.tbl
-# RFDengext :
+RFDalgo : RFDdiag.tma
+RFDjsonext : RFD.genui
 doit : RFDdiag.doit
 %%
 CXXFLAGS=-g
