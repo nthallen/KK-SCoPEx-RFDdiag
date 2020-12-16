@@ -1,6 +1,7 @@
 /** @file RFDdiag.cc */
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 #include <netdb.h>
 #include <string.h>
 #include <stdlib.h>
@@ -69,9 +70,11 @@ RFDdiag_t RFDdiag;
 // Commands:
 //   S:\d+  Set packet size
 //   R:\d+  Set packet rate
+//   T:\d+  Set RTS
 //   Q      Quit
 //   XS:\d+ Remote Set packet size
 //   XR:\d+ Remote Set packet rate
+//   XT:\d+ Remote Set RTS
 //   XQ     Remote Quit
 /**
  * @param cmd if non-zero, command originates from another interface
@@ -115,6 +118,30 @@ bool RFD_interface::parse_command(unsigned char *cmd, unsigned cmdlen) {
             int per_nsecs = L2R_Packet_rate == 0 ? 0 :
               (1000000000/(int)L2R_Packet_rate);
             tmr->settime(per_nsecs);
+          }
+        }
+        break;
+      case 'T':
+        if (not_str("T:") || not_uint16(newval)) {
+          report_err("%s: Invalid T command syntax", iname);
+          consume(nc);
+        } else {
+          report_ok(nc);
+          int RTS_flag;
+          RTS_flag = TIOCM_RTS;
+          ioctl(fd,newval ? TIOCMBIS : TIOCMBIC, &RTS_flag);
+        }
+        break;
+      case 'B':
+        if (not_str("B:") || not_uint16(newval)) {
+          report_err("%s: Invalid B command syntax", iname);
+          consume(nc);
+        } else {
+          report_ok(nc);
+          if (newval) {
+            flags |= Fl_Read;
+          } else {
+            flags &= ~Fl_Read;
           }
         }
         break;
