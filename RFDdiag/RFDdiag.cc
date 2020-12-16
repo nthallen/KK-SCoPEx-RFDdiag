@@ -71,10 +71,14 @@ RFDdiag_t RFDdiag;
 //   S:\d+  Set packet size
 //   R:\d+  Set packet rate
 //   T:\d+  Set RTS
+//   B:\d+  Set Baud
+//   H:\d+  Set Read Flag (hearing?)
 //   Q      Quit
 //   XS:\d+ Remote Set packet size
 //   XR:\d+ Remote Set packet rate
 //   XT:\d+ Remote Set RTS
+//   XB:\d+ Remote Set Baud
+//   XH:\d+ Remote Set Read Flag (hearing?)
 //   XQ     Remote Quit
 /**
  * @param cmd if non-zero, command originates from another interface
@@ -135,6 +139,15 @@ bool RFD_interface::parse_command(unsigned char *cmd, unsigned cmdlen) {
       case 'B':
         if (not_str("B:") || not_uint16(newval)) {
           report_err("%s: Invalid B command syntax", iname);
+          consume(nc);
+        } else {
+          report_ok(nc);
+          setup(newval, 8, 'n', 1, sizeof(RFDdiag_packet), 1);
+        }
+        break;
+      case 'H':
+        if (not_str("H:") || not_uint16(newval)) {
+          report_err("%s: Invalid H command syntax", iname);
           consume(nc);
         } else {
           report_ok(nc);
