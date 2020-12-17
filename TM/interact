@@ -1,5 +1,5 @@
   case `hostname` in
-    easwhlpt3425080) tty_rfd=/dev/ttyS8;;
+    easwhlpt3425080) tty_rfd=/dev/ttyS3;;
     dpops) tty_rfd=/dev/ttyS0;;
     *) tty_rfd=/dev/ttyS0;;
   esac
@@ -17,4 +17,4 @@
   Launch      tm_gen RFDcol -v
   Launch      cmd    RFDsrvr -v
   Launch      -      RFDdiag -v -p $tty_rfd -c
-  Launch      -TMC-  RFDdiagalgo -v
+  Launch      -TMC-  RFDalgo -v

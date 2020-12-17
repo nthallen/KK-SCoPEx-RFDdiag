@@ -13,9 +13,9 @@ HOMEDIR RFD_DATA_DIR
 1 L2R_Int_mean_latency L2R Latency mean
 1 L2R_Int_max_latency  L2R Latency max
 
-1 L2R_Total_packets_tx         Totals Packets R2L_tx
-1 L2R_Total_valid_packets_rx   Totals Packets R2L_valid
-1 L2R_Total_invalid_packets_rx Totals Packets R2L_invalid
+1 L2R_Total_packets_tx         Totals Packets L2R_tx
+1 L2R_Total_valid_packets_rx   Totals Packets L2R_valid
+1 L2R_Total_invalid_packets_rx Totals Packets L2R_invalid
 
 1 R2L_Packet_rate    R2L Pkts_per_sec rate
 1 R2L_Int_packets_tx R2L Pkts_per_sec tx
