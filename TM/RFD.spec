@@ -6,7 +6,7 @@ genuibase = RFD.genui
 
 Module RFDdiag
 
-TGTDIR = /home/RFDdiag
+TGTDIR = ../..
 IGNORE = "*.o" "*.exe" "*.stackdump" Makefile
 DISTRIB = interact
 
