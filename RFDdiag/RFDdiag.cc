@@ -23,6 +23,8 @@ DAS_IO::AppID_t DAS_IO::AppID("RFDdiag", "RFD Performance Diagnostic Tool", "V1.
 RFD_interface::RFD_interface(const char *name,
       const char *rfd_port, RFD_tmr *tmr)
       : DAS_IO::Serial(name, max_packet_size, rfd_port, O_RDWR),
+        write_blocked(false),
+        write_pkts_dropped(0),
         L2R_Int_packets_tx(0),
         L2R_Int_bytes_tx(0),
         Int_packets_tx(0),
@@ -181,7 +183,16 @@ bool RFD_interface::parse_command(unsigned char *cmd, unsigned cmdlen) {
 bool RFD_interface::transmit(uint16_t n_pkts) {
   bool rv;
   for (int i = 0; i < n_pkts; ++i) {
-    if (!obuf_empty()) return false;
+    if (!obuf_empty()) {
+      if (!write_pkts_dropped)
+        msg(MSG_WARN, "%s: Starting to drop tx packets", iname);
+      write_pkts_dropped += n_pkts;
+      return false;
+    } else if (write_pkts_dropped) {
+      msg(MSG_WARN, "%s: Tx recovered. %d packets dropped before tx",
+        iname, write_pkts_dropped);
+      write_pkts_dropped = 0;
+    }
     // build the packet
     // msg(MSG_DBG(0), "Transmit Latencies: N:%d min:%d max:%d",
       // RFDdiag.R2L.Int_packets_rx, RFDdiag.R2L.Int_min_latency, RFDdiag.R2L.Int_max_latency);
@@ -218,7 +229,11 @@ bool RFD_interface::transmit(uint16_t n_pkts) {
     ++L2R_Transmit_SN;
     ++Int_packets_tx;
     Int_bytes_tx += opkt->Packet_size;
-    if (rv) return true;
+    if (rv) {
+      msg(MSG_DEBUG, "%s: Received error from write on pkt %d of %d",
+        iname, i+1, n_pkts);
+      return true;
+    }
   }
   return rv;
 }
@@ -244,78 +259,75 @@ bool RFD_interface::protocol_input() {
     if (not_found(RFD_SYNCH_0)) {
       return false;
     }
-    if (cp >= nc || buf[cp] == RFD_SYNCH_1)
-      break;
-  }
-  if (cp > 1) consume(cp-1); // realign buf to pkt
-  if (nc < 4) return false;
-  if (pkt->Packet_size < sizeof(RFDdiag_packet) ||
-      pkt->Packet_size > max_packet_size) {
+    consume(cp-1); // realign buf to pkt
+    cp = 1; // allows continue to search to next synch
+    if (nc < 4) return false; // long enough to include Packet_size
+    if (buf[cp] != RFD_SYNCH_1)
+      continue;
+    if (pkt->Packet_size < sizeof(RFDdiag_packet) ||
+        pkt->Packet_size > max_packet_size) {
+      ++R2L_Total_packets_rx;
+      ++R2L_Total_invalid_packets_rx;
+      report_err("%s: Invalid Packet_size(%u)", iname, pkt->Packet_size);
+      continue;
+    }
+    if (nc < pkt->Packet_size) {
+      return false;
+    }
+    cp = pkt->Packet_size; // Now continue will skip entire packet
     ++R2L_Total_packets_rx;
-    ++R2L_Total_invalid_packets_rx;
-    report_err("%s: Invalid Packet_size(%u)", iname, pkt->Packet_size);
-    consume(nc);
-    return false;
+    
+    int32_t now = get_timestamp();
+    
+    if (!crc_ok()) {
+      ++R2L_Total_invalid_packets_rx;
+      report_err("%s: CRC error", iname);
+      continue;
+    }
+    if (sizeof(RFDdiag_packet) + pkt->Command_bytes > pkt->Packet_size) {
+      ++R2L_Total_invalid_packets_rx;
+      report_err("%s: Packet minsize(%u)+Cmd(%d) > Packet_size",
+        iname, sizeof(RFDdiag_packet), pkt->Command_bytes);
+      continue;
+    }
+    
+    int32_t latency = now - pkt->Transmit_timestamp;
+    if (R2L_Int_packets_rx == 0) {
+      R2L_latencies = R2L_Int_min_latency = R2L_Int_max_latency = latency;
+    } else {
+      if (latency < R2L_Int_min_latency) R2L_Int_min_latency = latency;
+      else if (latency > R2L_Int_max_latency) R2L_Int_max_latency = latency;
+      R2L_latencies += latency;
+    }
+    ++R2L_Int_packets_rx;
+    ++R2L_Total_valid_packets_rx;
+    if (RFDdiag.R2L.Receive_SN > 0 && pkt->Transmit_SN <= RFDdiag.R2L.Receive_SN) {
+      report_err("%s: Rx SN %u <= previous by %u", iname, pkt->Transmit_SN,
+        RFDdiag.R2L.Receive_SN - pkt->Transmit_SN);
+    }
+        
+    RFDdiag.R2L.Packet_size = pkt->Packet_size;
+    RFDdiag.R2L.Packet_rate = pkt->Packet_rate;
+    
+    RFDdiag.R2L.Receive_SN = pkt->Transmit_SN;
+    RFDdiag.R2L.Total_packets_tx = pkt->Transmit_SN;
+    RFDdiag.L2R.Receive_SN = pkt->Receive_SN;
+    R2L_Int_bytes_rx += pkt->Packet_size;
+    RFDdiag.R2L.Int_packets_tx = pkt->Int_packets_tx;
+    RFDdiag.L2R.Int_packets_rx = pkt->Int_packets_rx;
+    RFDdiag.L2R.Int_min_latency = pkt->Int_min_latency;
+    RFDdiag.L2R.Int_mean_latency = pkt->Int_mean_latency;
+    RFDdiag.L2R.Int_max_latency = pkt->Int_max_latency;
+    RFDdiag.L2R.Int_bytes_rx = pkt->Int_bytes_rx;
+    RFDdiag.R2L.Int_bytes_tx = pkt->Int_bytes_tx;
+    RFDdiag.L2R.Total_valid_packets_rx = pkt->Total_valid_packets_rx;
+    RFDdiag.L2R.Total_invalid_packets_rx = pkt->Total_invalid_packets_rx;
+    
+    if (pkt->Command_bytes > 0 && allow_remote_commands) {
+      rv = parse_command(0, pkt->Command_bytes);
+    }
   }
-  if (nc < pkt->Packet_size)
-    return false;
-  ++R2L_Total_packets_rx;
-  
-  int32_t now = get_timestamp();
-  
-  if (!crc_ok()) {
-    ++R2L_Total_invalid_packets_rx;
-    report_err("%s: CRC error", iname);
-    consume(nc);
-    return false;
-  }
-  if (sizeof(RFDdiag_packet) + pkt->Command_bytes > pkt->Packet_size) {
-    ++R2L_Total_invalid_packets_rx;
-    report_err("%s: Packet minsize(%u)+Cmd(%d) > Packet_size",
-      iname, sizeof(RFDdiag_packet), pkt->Command_bytes);
-    consume(nc);
-    return false;
-  }
-  
-  int32_t latency = now - pkt->Transmit_timestamp;
-  // msg(MSG_DBG(0), "Latency = %d", latency);
-  if (R2L_Int_packets_rx == 0) {
-    R2L_latencies = R2L_Int_min_latency = R2L_Int_max_latency = latency;
-  } else {
-    if (latency < R2L_Int_min_latency) R2L_Int_min_latency = latency;
-    else if (latency > R2L_Int_max_latency) R2L_Int_max_latency = latency;
-    R2L_latencies += latency;
-  }
-  ++R2L_Int_packets_rx;
-  ++R2L_Total_valid_packets_rx;
-  if (RFDdiag.R2L.Receive_SN > 0 && pkt->Transmit_SN <= RFDdiag.R2L.Receive_SN) {
-    report_err("%s: Rx SN %u <= previous by %u", iname, pkt->Transmit_SN,
-      RFDdiag.R2L.Receive_SN - pkt->Transmit_SN);
-  }
-  // msg(MSG_DBG(0), "Latency = %d, valid = %u, invalid = %u", latency,
-      // R2L_Total_valid_packets_rx, R2L_Total_invalid_packets_rx);
-      
-  RFDdiag.R2L.Packet_size = pkt->Packet_size;
-  RFDdiag.R2L.Packet_rate = pkt->Packet_rate;
-  
-  RFDdiag.R2L.Receive_SN = pkt->Transmit_SN;
-  RFDdiag.R2L.Total_packets_tx = pkt->Transmit_SN;
-  RFDdiag.L2R.Receive_SN = pkt->Receive_SN;
-  R2L_Int_bytes_rx += pkt->Packet_size;
-  RFDdiag.R2L.Int_packets_tx = pkt->Int_packets_tx;
-  RFDdiag.L2R.Int_packets_rx = pkt->Int_packets_rx;
-  RFDdiag.L2R.Int_min_latency = pkt->Int_min_latency;
-  RFDdiag.L2R.Int_mean_latency = pkt->Int_mean_latency;
-  RFDdiag.L2R.Int_max_latency = pkt->Int_max_latency;
-  RFDdiag.L2R.Int_bytes_rx = pkt->Int_bytes_rx;
-  RFDdiag.R2L.Int_bytes_tx = pkt->Int_bytes_tx;
-  RFDdiag.L2R.Total_valid_packets_rx = pkt->Total_valid_packets_rx;
-  RFDdiag.L2R.Total_invalid_packets_rx = pkt->Total_invalid_packets_rx;
-  
-  if (pkt->Command_bytes > 0 && allow_remote_commands) {
-    rv = parse_command(0, pkt->Command_bytes);
-  }
-  report_ok(nc);
+  report_ok(cp);
   return rv;
 }
 

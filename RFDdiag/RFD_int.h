@@ -64,6 +64,8 @@ class RFD_interface : public DAS_IO::Serial {
   protected:
     uint16_t crc_calc(uint8_t *buf, int len);
     int32_t get_timestamp();
+    bool write_blocked;
+    int write_pkts_dropped;
     // From transmitter:
     void crc_set();
     RFDdiag_packet *opkt;
