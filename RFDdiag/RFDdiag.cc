@@ -146,6 +146,7 @@ bool RFD_interface::parse_command(unsigned char *cmd, unsigned cmdlen) {
           consume(nc);
         } else {
           report_ok(nc);
+          msg(0, "%s: Setting baud rate to %d", iname, newval);
           setup(newval, 8, 'n', 1, sizeof(RFDdiag_packet), 1);
           hwflow_enable(true);
         }
