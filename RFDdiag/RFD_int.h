@@ -65,7 +65,9 @@ class RFD_interface : public DAS_IO::Serial {
     uint16_t crc_calc(uint8_t *buf, int len);
     int32_t get_timestamp();
     const char *ascii_escape();
+    void log_packet(RFDdiag_packet *pkt);
     bool write_blocked;
+    bool log_tx_pkts;
     int write_pkts_dropped;
     // From transmitter:
     void crc_set();

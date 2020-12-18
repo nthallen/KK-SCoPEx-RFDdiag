@@ -15,6 +15,9 @@
   : &remote Read &enable * {
       if_RFDdiag.Turf("%sH:%d\n", $1, $3);
     }
+  : &remote Log Tx Packets &enable * {
+      if_RFDdiag.Turf("%sL:%d\n", $1, $5 ? 1 : 0);
+    }
   : &remote Quit * {
       if_RFDdiag.Turf("%sQ\n", $1);
     }

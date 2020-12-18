@@ -24,6 +24,7 @@ RFD_interface::RFD_interface(const char *name,
       const char *rfd_port, RFD_tmr *tmr)
       : DAS_IO::Serial(name, max_packet_size, rfd_port, O_RDWR),
         write_blocked(false),
+        log_tx_pkts(false),
         write_pkts_dropped(0),
         L2R_Int_packets_tx(0),
         L2R_Int_bytes_tx(0),
@@ -162,6 +163,14 @@ bool RFD_interface::parse_command(unsigned char *cmd, unsigned cmdlen) {
           }
         }
         break;
+      case 'L':
+        if (not_str("L:") || not_uint16(newval)) {
+          report_err("%s: Invalid L command syntax", iname);
+          consume(nc);
+        } else {
+          log_tx_pkts = (newval & 1) != 0;
+        }
+        break;
       case 'Q':
         report_ok(nc);
         msg(MSG_DEBUG, "%s Q", src);
@@ -227,6 +236,7 @@ bool RFD_interface::transmit(uint16_t n_pkts) {
       opkt->Remainder[j] = (uint8_t)rand();
     }
     crc_set();
+    if (log_tx_pkts) log_packet(opkt);
     rv = iwrite((char *)opkt, opkt->Packet_size);
     ++L2R_Transmit_SN;
     ++Int_packets_tx;
@@ -249,6 +259,24 @@ void RFD_interface::crc_set() {
 
 const char *RFD_interface::ascii_escape() {
   return "<redacted>";
+}
+
+void RFD_interface::log_packet(RFDdiag_packet *pkt) {
+  static std::string s;
+  const uint8_t *cbuf = (const uint8_t *)pkt;
+  char snbuf[8];
+  int j = 0;
+  while (j < pkt->Packet_size) {
+    s.clear();
+    int nr = pkt->Packet_size - j;
+    if (nr > 20) nr = 20;
+    for (int jj = 0; jj < nr; ++jj) {
+      snprintf(snbuf, 8, " %02X", cbuf[j+jj]);
+      s.append(snbuf);
+    }
+    msg(0, "pkt[%2d] = %s", j, s.c_str());
+    j += nr;
+  }
 }
 
 bool RFD_interface::protocol_input() {
@@ -288,21 +316,7 @@ bool RFD_interface::protocol_input() {
     if (!crc_ok()) {
       ++R2L_Total_invalid_packets_rx;
       msg(MSG_ERROR, "%s: CRC error", iname);
-      static std::string s;
-      char snbuf[8];
-      int j = 0;
-      while (j < pkt->Packet_size) {
-        s.clear();
-        int nr = pkt->Packet_size - j;
-        if (nr > 20) nr = 20;
-        for (int jj = 0; jj < nr; ++jj) {
-          snprintf(snbuf, 8, " %02X", buf[j+jj]);
-          s.append(snbuf);
-        }
-        msg(0, "pkt[%2d] = %s", j, s.c_str());
-        j += nr;
-      }
-      
+      log_packet(pkt);
       continue;
     }
     if (sizeof(RFDdiag_packet) + pkt->Command_bytes > pkt->Packet_size) {
