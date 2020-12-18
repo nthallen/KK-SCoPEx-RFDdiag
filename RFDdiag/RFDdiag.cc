@@ -75,6 +75,7 @@ RFDdiag_t RFDdiag;
 //   T:\d+  Set RTS
 //   B:\d+  Set Baud
 //   H:\d+  Set Read Flag (hearing?)
+//   L:\d+  Log Tx Packets
 //   Q      Quit
 //   XS:\d+ Remote Set packet size
 //   XR:\d+ Remote Set packet rate
@@ -145,6 +146,7 @@ bool RFD_interface::parse_command(unsigned char *cmd, unsigned cmdlen) {
         } else {
           report_ok(nc);
           setup(newval, 8, 'n', 1, sizeof(RFDdiag_packet), 1);
+          hwflow_enable(true);
         }
         break;
       case 'H':
@@ -245,6 +247,10 @@ void RFD_interface::crc_set() {
   data[opkt->Packet_size-1] = (crc >> 8) & 0xFF;
 }
 
+const char *RFD_interface::ascii_escape() {
+  return "<redacted>";
+}
+
 bool RFD_interface::protocol_input() {
   bool rv = false;
   // This routine, originally written for UDP, assumed
@@ -281,7 +287,22 @@ bool RFD_interface::protocol_input() {
     
     if (!crc_ok()) {
       ++R2L_Total_invalid_packets_rx;
-      report_err("%s: CRC error", iname);
+      msg(MSG_ERROR, "%s: CRC error", iname);
+      static std::string s;
+      char snbuf[8];
+      int j = 0;
+      while (j < pkt->Packet_size) {
+        s.clear();
+        int nr = pkt->Packet_size - j;
+        if (nr > 20) nr = 20;
+        for (int jj = 0; jj < nr; ++jj) {
+          snprintf(snbuf, 8, " %02X", buf[j+jj]);
+          s.append(snbuf);
+        }
+        msg(0, "pkt[%2d] = %s", j, s.c_str());
+        j += nr;
+      }
+      
       continue;
     }
     if (sizeof(RFDdiag_packet) + pkt->Command_bytes > pkt->Packet_size) {
