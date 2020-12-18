@@ -315,8 +315,6 @@ bool RFD_interface::protocol_input() {
     
     if (!crc_ok()) {
       ++R2L_Total_invalid_packets_rx;
-      msg(MSG_ERROR, "%s: CRC error", iname);
-      log_packet(pkt);
       continue;
     }
     if (sizeof(RFDdiag_packet) + pkt->Command_bytes > pkt->Packet_size) {
@@ -399,8 +397,15 @@ bool RFD_interface::tm_sync() {
 }
 
 bool RFD_interface::crc_ok() {
-  uint16_t crc = crc_calc(buf, nc-2);
-  return buf[nc-2] == (crc & 0xFF) && buf[nc-1] == ((crc>>8)&0xFF);
+  uint16_t crc = crc_calc(buf, pkt->Packet_size-2);
+  uint16_t bufcrc = buf[pkt->Packet_size-2] + (buf[pkt->Packet_size-1]<<8);
+  //bool rv = buf[nc-2] == (crc & 0xFF) && buf[nc-1] == ((crc>>8)&0xFF);
+  bool rv = crc == bufcrc;
+  if (!rv) {
+    msg(MSG_ERROR, "%s: CRC error: recd: %04X calc: %04X", iname, bufcrc, crc);
+    log_packet(pkt);
+  }
+  return rv;
 }
 
 RFD_cmd::RFD_cmd(RFD_interface *tx)
