@@ -292,6 +292,7 @@ bool RFD_interface::protocol_input() {
   cp = 0;
   while (nc-cp >= 4) {
     if (not_found(RFD_SYNCH_0)) {
+      ++R2L_Total_invalid_packets_rx;
       return false;
     }
     consume(cp-1); // realign buf to pkt
@@ -309,7 +310,6 @@ bool RFD_interface::protocol_input() {
     if (nc < pkt->Packet_size) {
       return false;
     }
-    cp = pkt->Packet_size; // Now continue will skip entire packet
     ++R2L_Total_packets_rx;
     
     int32_t now = get_timestamp();
@@ -318,6 +318,7 @@ bool RFD_interface::protocol_input() {
       ++R2L_Total_invalid_packets_rx;
       continue;
     }
+    cp = pkt->Packet_size; // Now continue will skip entire packet
     if (sizeof(RFDdiag_packet) + pkt->Command_bytes > pkt->Packet_size) {
       ++R2L_Total_invalid_packets_rx;
       report_err("%s: Packet minsize(%u)+Cmd(%d) > Packet_size",
