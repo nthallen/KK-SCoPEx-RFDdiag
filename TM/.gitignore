@@ -9,6 +9,7 @@ RFDdispnc.cc
 RFDdispncoui.cc
 RFDdispnc.o
 RFDdispncoui.o
+RFDalgosws.tma
 RFDalgoa.tmc
 RFDalgo.cc
 RFDalgooui.cc

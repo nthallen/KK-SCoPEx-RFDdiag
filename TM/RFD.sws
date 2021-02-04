@@ -1,0 +1,4 @@
+SW_Variable: <uint8_t,UCHAR> SWStat SW Status
+  SWS_IDLE             1 Idle:                   Validate idle; break;
+  SWS_SEQUENCE         2 Sequence:               Validate transmit_sequence; break;
+  SWS_SHUTDOWN       255 Shutdown Full:          Validate Shutdown; break;

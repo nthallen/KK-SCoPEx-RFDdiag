@@ -6,9 +6,9 @@ Effective Frame Dimensions:
   2 Rows 53 Columns
   2 rows/sec
   848 bits/sec
-  Data:  776 bits/sec  92 %
+  Data:  784 bits/sec  92 %
   Synch: 64 bits/sec  8 %
-  Empty: 8 bits/sec  1 %
+  Empty: 0 bits/sec  0 %
 -------End of Frame Statistics-----
 
 
@@ -43,5 +43,6 @@ Effective Frame Dimensions:
 1/1 Hz 2 bytes Member R2L_Packet_size (2,1,44,2)
 1/1 Hz 2 bytes Member L2R_Packet_rate (2,1,46,2)
 1/1 Hz 2 bytes Member L2R_Packet_size (2,1,48,2)
+1/1 Hz 1 bytes Datum SWStat (2,1,50,1)
 -------End of PCM Definition-------
 

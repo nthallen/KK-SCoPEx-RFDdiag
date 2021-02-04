@@ -45,7 +45,7 @@ RFD_interface::RFD_interface(const char *name,
         R2L_Int_max_latency(0),
         R2L_Int_bytes_rx(0),
         R2L_latencies(0) {
-  setup(57600, 8, 'n', 1, sizeof(RFDdiag_packet), 1);
+  setup(115200, 8, 'n', 1, sizeof(RFDdiag_packet), 1);
   hwflow_enable(true);
   opkt = (RFDdiag_packet*)new_memory(max_packet_size);
   nl_assert(tmr);
@@ -245,7 +245,7 @@ bool RFD_interface::transmit(uint16_t n_pkts) {
     if (rv) {
       msg(MSG_DEBUG, "%s: Received error from write on pkt %d of %d",
         iname, i+1, n_pkts);
-      return true;
+      return false;
     }
   }
   return rv;
@@ -364,6 +364,11 @@ bool RFD_interface::protocol_input() {
   }
   report_ok(cp);
   return rv;
+}
+
+bool RFD_interface::read_error(int my_errno) {
+  msg(MSG_ERROR, "%s: read error %d: %s", iname, my_errno, strerror(my_errno));
+  return false;
 }
 
 bool RFD_interface::tm_sync() {

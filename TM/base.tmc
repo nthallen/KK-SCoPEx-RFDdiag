@@ -1,3 +1,5 @@
+TM typedef uint8_t UCHAR { text "%3u"; }
+
 TM "Receive" RFDdiag 1;
 
 TM typedef uint16_t mfc_t { text "%5u"; }

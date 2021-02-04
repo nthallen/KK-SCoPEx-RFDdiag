@@ -3,6 +3,7 @@ tmcbase = /usr/local/share/monarch/modules/flttime.tmc
 colbase = RFDdiag_col.tmc
 cmdbase = RFD.cmd
 genuibase = RFD.genui
+swsbase = RFD.sws
 
 Module RFDdiag
 
@@ -12,7 +13,7 @@ DISTRIB = interact
 
 RFDcol :
 RFDdisp : display.tbl
-RFDalgo : RFDdiag.tma
+RFDalgo : RFDdiag.tma RFD.sws
 RFDjsonext : RFD.genui
 doit : RFDdiag.doit
 %%

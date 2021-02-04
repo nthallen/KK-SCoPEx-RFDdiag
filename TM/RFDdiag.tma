@@ -1,3 +1,41 @@
 state init {
   > Telemetry Start
 }
+
+state idle {
+  
+}
+
+state transmit_sequence {
+        > Local Set Packet Rate 1
+        > Remote Set Packet Rate 1
+  +1:00 > Local Set Packet Rate 10
+  +1:00 > Remote Set Packet Rate 2
+  +1:00 > Remote Set Packet Rate 3
+  +1:00 > Remote Set Packet Rate 4
+  +1:00 > Remote Set Packet Rate 5
+  +1:00 > Remote Set Packet Rate 6
+  +1:00 > Remote Set Packet Rate 7
+  +1:00 > Remote Set Packet Rate 8
+  +1:00 > Remote Set Packet Rate 9
+  +1:00 > Remote Set Packet Rate 10
+  +1:00 > Local Set Packet Rate 20
+        > Remote Set Packet Rate 1
+  +1:00 > Remote Set Packet Rate 2
+  +1:00 > Remote Set Packet Rate 4
+  +1:00 > Remote Set Packet Rate 6
+  +1:00 > Remote Set Packet Rate 8
+  +1:00 > Remote Set Packet Rate 10
+  +1:00 > Remote Set Packet Rate 12
+  +1:00 > Remote Set Packet Rate 14
+  +1:00 > Remote Set Packet Rate 18
+  +1:00 > Remote Set Packet Rate 18
+  +1:00 > Remote Set Packet Rate 29
+  +1:00 > Remote Set Packet Rate 1
+        > Local Set Packet Rate 1
+        Validate idle;
+}
+
+state Shutdown {
+        > Quit
+}
