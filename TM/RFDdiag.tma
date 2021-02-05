@@ -62,6 +62,18 @@ state transmit_sequence {
         Validate Shutdown;
 }
 
+state transmit_sequence2 {
+  { if (RFD_Stale > 0) Validate Shutdown; }
+        > Remote Set Packet Rate 40
+        > Local Set Packet Rate 40
+  +5:00 > Local Set Packet Size 100
+        > Remote Set Packet Size 100
+  +5:00 > Local Set Packet Size 150
+        > Remote Set Packet Size 150
+  +5:00 > Local Set Packet Size 200
+        > Remote Set Packet Size 200
+}
+
 state Shutdown {
      +5 > Quit
 }
