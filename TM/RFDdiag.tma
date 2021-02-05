@@ -1,5 +1,6 @@
 state init {
   > Telemetry Start
+  Validate idle;
 }
 
 state idle {

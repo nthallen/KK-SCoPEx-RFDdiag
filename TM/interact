@@ -1,6 +1,7 @@
   case `hostname` in
     easwhlpt3425080) tty_rfd=/dev/ttyS7;;
     dpops) tty_rfd=/dev/ttyS0;;
+    spi2) tty_rfd=/dev/ttyUSB0;;
     *) tty_rfd=/dev/ttyS0;;
   esac
   if [ ! -c $tty_rfd ]; then
