@@ -20,7 +20,7 @@ state transmit_sequence {
   +1:00 > Remote Set Packet Rate 9
   +1:00 > Remote Set Packet Rate 10
   +1:00 > Local Set Packet Rate 20
-        > Remote Set Packet Rate 1
+     +1 > Remote Set Packet Rate 1
   +1:00 > Remote Set Packet Rate 2
   +1:00 > Remote Set Packet Rate 4
   +1:00 > Remote Set Packet Rate 6
@@ -30,7 +30,7 @@ state transmit_sequence {
   +1:00 > Remote Set Packet Rate 14
   +1:00 > Remote Set Packet Rate 18
   +1:00 > Remote Set Packet Rate 18
-  +1:00 > Remote Set Packet Rate 29
+  +1:00 > Remote Set Packet Rate 20
   +1:00 > Remote Set Packet Rate 1
         > Local Set Packet Rate 1
         Validate idle;

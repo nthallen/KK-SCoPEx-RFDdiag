@@ -194,6 +194,8 @@ bool RFD_interface::parse_command(unsigned char *cmd, unsigned cmdlen) {
 
 bool RFD_interface::transmit(uint16_t n_pkts) {
   bool rv;
+  if (n_pkts > 1)
+    msg(MSG_DEBUG, "%s: transmit(n_pkts = %u)", iname, n_pkts);
   for (int i = 0; i < n_pkts; ++i) {
     if (!obuf_empty()) {
       if (!write_pkts_dropped)
@@ -420,8 +422,18 @@ RFD_cmd::RFD_cmd(RFD_interface *tx)
       tx(tx) {}
 
 bool RFD_cmd::protocol_input() {
-  bool rv = tx->parse_command(&buf[0], nc);
-  report_ok(nc);
+  bool rv = false;
+  while (cp < nc ) {
+    int i;
+    for (i = 0; cp + i < nc && buf[cp+i] != '\n'; ++i) ;
+    if (cp + i < nc) { // then buf[cp+i] == '\n'
+      rv = tx->parse_command(&buf[cp], i+1) || rv;
+      cp += i+1;
+    } else {
+      break;
+    }
+  }
+  report_ok(cp);
   return rv;
 }
 
