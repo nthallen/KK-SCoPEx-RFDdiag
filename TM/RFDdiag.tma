@@ -3,10 +3,11 @@ state init {
 }
 
 state idle {
-  
+  { if (RFD_Stale > 0) Validate Shutdown; }
 }
 
 state transmit_sequence {
+  { if (RFD_Stale > 0) Validate Shutdown; }
         > Local Set Packet Rate 1
         > Remote Set Packet Rate 1
   +1:00 > Local Set Packet Rate 10
@@ -31,11 +32,36 @@ state transmit_sequence {
   +1:00 > Remote Set Packet Rate 18
   +1:00 > Remote Set Packet Rate 18
   +1:00 > Remote Set Packet Rate 20
+  +1:00 > Local Set Packet Rate 30
+     +1 > Remote Set Packet Rate 1
+  +1:00 > Remote Set Packet Rate 3
+  +1:00 > Remote Set Packet Rate 6
+  +1:00 > Remote Set Packet Rate 9
+  +1:00 > Remote Set Packet Rate 12
+  +1:00 > Remote Set Packet Rate 15
+  +1:00 > Remote Set Packet Rate 18
+  +1:00 > Remote Set Packet Rate 21
+  +1:00 > Remote Set Packet Rate 24
+  +1:00 > Remote Set Packet Rate 27
+  +1:00 > Remote Set Packet Rate 30
+  +1:00 > Local Set Packet Rate 40
+     +1 > Remote Set Packet Rate 1
+  +1:00 > Remote Set Packet Rate 4
+  +1:00 > Remote Set Packet Rate 8
+  +1:00 > Remote Set Packet Rate 12
+  +1:00 > Remote Set Packet Rate 16
+  +1:00 > Remote Set Packet Rate 20
+  +1:00 > Remote Set Packet Rate 24
+  +1:00 > Remote Set Packet Rate 28
+  +1:00 > Remote Set Packet Rate 32
+  +1:00 > Remote Set Packet Rate 36
+  +1:00 > Remote Set Packet Rate 40
   +1:00 > Remote Set Packet Rate 1
         > Local Set Packet Rate 1
-        Validate idle;
+     +5 > Remote Quit
+        Validate Shutdown;
 }
 
 state Shutdown {
-        > Quit
+     +5 > Quit
 }
