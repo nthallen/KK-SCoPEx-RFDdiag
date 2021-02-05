@@ -45,7 +45,7 @@ RFD_interface::RFD_interface(const char *name,
         R2L_Int_max_latency(0),
         R2L_Int_bytes_rx(0),
         R2L_latencies(0) {
-  setup(115200, 8, 'n', 1, sizeof(RFDdiag_packet), 1);
+  setup(230400, 8, 'n', 1, sizeof(RFDdiag_packet), 1);
   hwflow_enable(true);
   opkt = (RFDdiag_packet*)new_memory(max_packet_size);
   nl_assert(tmr);
