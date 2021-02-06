@@ -65,14 +65,14 @@ state transmit_sequence {
 
 state transmit_sequence2 {
   { if (RFD_Stale > 60) Validate Shutdown; }
-        > Remote Set Packet Rate 40
-        > Local Set Packet Rate 40
-  +5:00 > Local Set Packet Size 100
+        > Local Set Packet Size 100
         > Remote Set Packet Size 100
-  +5:00 > Local Set Packet Size 150
+        > Local Set Packet Rate 1
+     +4 > Remote Set Packet Rate 1
+  +0:30 > Remote Set Packet Rate 40
+        > Local Set Packet Rate 40
+  +0:30 > Local Set Packet Size 150
         > Remote Set Packet Size 150
-  +5:00 > Local Set Packet Size 200
-        > Remote Set Packet Size 200
 }
 
 state transmit_sequence3 {
@@ -83,28 +83,28 @@ state transmit_sequence3 {
      +4 > Remote Set Packet Rate 1
   +0:30 > Remote Set Packet Rate 40
         > Local Set Packet Rate 40
+  +5:00 > Local Set Packet Size 105
+        > Remote Set Packet Size 105
+  +5:00 > Local Set Packet Size 110
+        > Remote Set Packet Size 110
+  +5:00 > Local Set Packet Size 115
+        > Remote Set Packet Size 115
+  +5:00 > Local Set Packet Size 120
+        > Remote Set Packet Size 120
+  +5:00 > Local Set Packet Size 125
+        > Remote Set Packet Size 125
+  +5:00 > Local Set Packet Size 130
+        > Remote Set Packet Size 130
+  +5:00 > Local Set Packet Size 135
+        > Remote Set Packet Size 135
+  +5:00 > Local Set Packet Size 140
+        > Remote Set Packet Size 140
+  +5:00 > Local Set Packet Size 145
+        > Remote Set Packet Size 145
   +5:00 > Local Set Packet Size 150
         > Remote Set Packet Size 150
   +5:00 > Local Set Packet Size 155
         > Remote Set Packet Size 155
-  +5:00 > Local Set Packet Size 160
-        > Remote Set Packet Size 160
-  +5:00 > Local Set Packet Size 165
-        > Remote Set Packet Size 165
-  +5:00 > Local Set Packet Size 170
-        > Remote Set Packet Size 170
-  +5:00 > Local Set Packet Size 175
-        > Remote Set Packet Size 175
-  +5:00 > Local Set Packet Size 180
-        > Remote Set Packet Size 180
-  +5:00 > Local Set Packet Size 185
-        > Remote Set Packet Size 185
-  +5:00 > Local Set Packet Size 190
-        > Remote Set Packet Size 190
-  +5:00 > Local Set Packet Size 195
-        > Remote Set Packet Size 195
-  +5:00 > Local Set Packet Size 200
-        > Remote Set Packet Size 200
 }
 
 state Shutdown {

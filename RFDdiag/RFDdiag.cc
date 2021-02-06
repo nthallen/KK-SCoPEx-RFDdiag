@@ -397,11 +397,16 @@ bool RFD_interface::tm_sync() {
   RFDdiag.L2R.Packet_rate = L2R_Packet_rate;
   L2R_Int_packets_tx = Int_packets_tx;
   L2R_Int_bytes_tx = Int_bytes_tx;
-  Int_packets_tx = 0;
-  Int_bytes_tx = 0;
   RFDdiag.L2R.Int_packets_tx = L2R_Int_packets_tx;
   RFDdiag.L2R.Int_bytes_tx = L2R_Int_bytes_tx;
   RFDdiag.L2R.Total_packets_tx = L2R_Transmit_SN;
+  if (RFDdiag.L2R.Int_packets_tx > 2*L2R_Packet_rate) {
+    msg(MSG_DEBUG, "%s: tx %u %u %u %u", iname,
+      RFDdiag.L2R.Int_packets_tx, L2R_Int_packets_tx,
+      Int_packets_tx, L2R_Packet_rate);
+  }
+  Int_packets_tx = 0;
+  Int_bytes_tx = 0;
   return false;
 }
 
