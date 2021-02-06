@@ -4,11 +4,11 @@ state init {
 }
 
 state idle {
-  { if (RFD_Stale > 0) Validate Shutdown; }
+  { if (RFD_Stale > 60) Validate Shutdown; }
 }
 
 state transmit_sequence {
-  { if (RFD_Stale > 0) Validate Shutdown; }
+  { if (RFD_Stale > 60) Validate Shutdown; }
         > Local Set Packet Rate 1
         > Remote Set Packet Rate 1
   +1:00 > Local Set Packet Rate 10
@@ -64,7 +64,7 @@ state transmit_sequence {
 }
 
 state transmit_sequence2 {
-  { if (RFD_Stale > 0) Validate Shutdown; }
+  { if (RFD_Stale > 60) Validate Shutdown; }
         > Remote Set Packet Rate 40
         > Local Set Packet Rate 40
   +5:00 > Local Set Packet Size 100

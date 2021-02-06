@@ -17,5 +17,6 @@
   : Idle { $0 = SWS_IDLE; }
   : Set %d { $0 = $2; }
   : Sequence { $0 = SWS_SEQUENCE; }
+  : Sequence2 { $0 = SWS_SEQUENCE2; }
   : Shutdown Full { $0 = SWS_SHUTDOWN; }
   ;
