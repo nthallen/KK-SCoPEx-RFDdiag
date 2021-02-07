@@ -46,8 +46,10 @@ RFD_interface::RFD_interface(const char *name,
         R2L_Int_max_latency(0),
         R2L_Int_bytes_rx(0),
         R2L_latencies(0) {
-  setup(230400, 8, 'n', 1, sizeof(RFDdiag_packet), 1);
+  setup(230400, 8, 'n', 1, 0, 0);
   hwflow_enable(true);
+  flush_input();
+  update_tc_vmin(L2R_Packet_size,1);
   opkt = (RFDdiag_packet*)new_memory(max_packet_size);
   nl_assert(tmr);
   tmr->set_transmitter(this);
@@ -301,11 +303,15 @@ bool RFD_interface::protocol_input() {
   while (nc-cp >= 4) {
     if (not_found(RFD_SYNCH_0)) {
       ++R2L_Total_invalid_packets_rx;
+      update_tc_vmin(sizeof(RFDdiag_packet),1);
       return false;
     }
     consume(cp-1); // realign buf to pkt
     cp = 1; // allows continue to search to next synch
-    if (nc < 4) return false; // long enough to include Packet_size
+    if (nc < 4) { // long enough to include Packet_size
+      update_tc_vmin(sizeof(RFDdiag_packet)-nc,1);
+      return false;
+    }
     if (buf[cp] != RFD_SYNCH_1)
       continue;
     if (pkt->Packet_size < sizeof(RFDdiag_packet) ||
@@ -316,6 +322,7 @@ bool RFD_interface::protocol_input() {
       continue;
     }
     if (nc < pkt->Packet_size) {
+      update_tc_vmin(pkt->Packet_size - nc, 1);
       return false;
     }
     ++R2L_Total_packets_rx;
@@ -371,6 +378,7 @@ bool RFD_interface::protocol_input() {
     }
   }
   report_ok(cp);
+  update_tc_vmin(sizeof(RFDdiag_packet)-nc,1);
   return rv;
 }
 
