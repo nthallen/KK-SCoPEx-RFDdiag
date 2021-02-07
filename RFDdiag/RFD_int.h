@@ -69,6 +69,8 @@ class RFD_interface : public DAS_IO::Serial {
     bool write_blocked;
     bool log_tx_pkts;
     int write_pkts_dropped;
+    int transmit_pkts_pending;
+
     // From transmitter:
     void crc_set();
     RFDdiag_packet *opkt;
@@ -88,6 +90,7 @@ class RFD_interface : public DAS_IO::Serial {
     // From receiver
     bool protocol_input();
     bool read_error(int my_errno);
+    bool protocol_gflag(int flag);
     bool tm_sync();
     bool crc_ok();
     const char *recv_port;

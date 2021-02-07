@@ -26,6 +26,7 @@ RFD_interface::RFD_interface(const char *name,
         write_blocked(false),
         log_tx_pkts(false),
         write_pkts_dropped(0),
+        transmit_pkts_pending(0),
         L2R_Int_packets_tx(0),
         L2R_Int_bytes_tx(0),
         Int_packets_tx(0),
@@ -51,7 +52,7 @@ RFD_interface::RFD_interface(const char *name,
   nl_assert(tmr);
   tmr->set_transmitter(this);
   pkt = (RFDdiag_packet *)buf;
-  flags = Fl_Read | gflag(0);
+  flags = Fl_Read | gflag(0) | gflag(1);
 }
 
 uint16_t RFD_interface::crc_calc(uint8_t *buf, int len) {
@@ -193,63 +194,68 @@ bool RFD_interface::parse_command(unsigned char *cmd, unsigned cmdlen) {
 }
 
 bool RFD_interface::transmit(uint16_t n_pkts) {
-  bool rv;
-  if (n_pkts > 1)
-    msg(MSG_DEBUG, "%s: transmit(n_pkts = %u)", iname, n_pkts);
-  for (int i = 0; i < n_pkts; ++i) {
+  bool rv = false;
+  // if (n_pkts > 1)
+    // msg(MSG_DEBUG, "%s: transmit(n_pkts = %u)", iname, n_pkts);
+  transmit_pkts_pending += n_pkts;
+  if (transmit_pkts_pending) {
     if (!obuf_empty()) {
       if (!write_pkts_dropped)
         msg(MSG_WARN, "%s: Starting to drop tx packets", iname);
-      write_pkts_dropped += n_pkts;
-      return false;
-    } else if (write_pkts_dropped) {
-      msg(MSG_WARN, "%s: Tx recovered. %d packets dropped before tx",
-        iname, write_pkts_dropped);
-      write_pkts_dropped = 0;
-    }
-    // build the packet
-    // msg(MSG_DBG(0), "Transmit Latencies: N:%d min:%d max:%d",
-      // RFDdiag.R2L.Int_packets_rx, RFDdiag.R2L.Int_min_latency, RFDdiag.R2L.Int_max_latency);
-    opkt->Synch[0] = RFD_SYNCH_0;
-    opkt->Synch[1] = RFD_SYNCH_1;
-    opkt->Command_bytes = L2R_command_len;
-    opkt->Packet_size = sizeof(RFDdiag_packet) + L2R_command_len;
-    if (opkt->Packet_size < L2R_Packet_size)
-      opkt->Packet_size = L2R_Packet_size;
-    opkt->Packet_rate = L2R_Packet_rate;
-    opkt->Int_packets_tx = L2R_Int_packets_tx;
-    opkt->Transmit_SN = L2R_Transmit_SN;
-    opkt->Receive_SN = RFDdiag.R2L.Receive_SN;
-    opkt->Int_packets_rx = RFDdiag.R2L.Int_packets_rx;
-    opkt->Int_min_latency = RFDdiag.R2L.Int_min_latency;
-    opkt->Int_mean_latency = RFDdiag.R2L.Int_mean_latency;
-    opkt->Int_max_latency = RFDdiag.R2L.Int_max_latency;
-    opkt->Int_bytes_rx = RFDdiag.R2L.Int_bytes_rx;
-    opkt->Int_bytes_tx = RFDdiag.L2R.Int_bytes_tx;
-    opkt->Total_valid_packets_rx = RFDdiag.R2L.Total_valid_packets_rx;
-    opkt->Total_invalid_packets_rx = RFDdiag.R2L.Total_invalid_packets_rx;
-    
-    int j;
-    for (j = 0; j < L2R_command_len; ++j) {
-      opkt->Remainder[j] = L2R_command[j];
-    }
-    opkt->Transmit_timestamp = get_timestamp();
-    
-    for (; j < opkt->Packet_size - 2; ++j) {
-      opkt->Remainder[j] = (uint8_t)rand();
-    }
-    crc_set();
-    if (log_tx_pkts) log_packet(opkt);
-    rv = iwrite((char *)opkt, opkt->Packet_size);
-    ++L2R_Transmit_SN;
-    ++Int_packets_tx;
-    Int_bytes_tx += opkt->Packet_size;
-    if (rv) {
-      msg(MSG_DEBUG, "%s: Received error from write on pkt %d of %d",
-        iname, i+1, n_pkts);
-      return false;
+      ++write_pkts_dropped;
+      --transmit_pkts_pending;
+    } else {
+      if (write_pkts_dropped) {
+        msg(MSG_WARN, "%s: Tx recovered. %d packets dropped before tx",
+          iname, write_pkts_dropped);
+        write_pkts_dropped = 0;
+      }
+      // build the packet
+      // msg(MSG_DBG(0), "Transmit Latencies: N:%d min:%d max:%d",
+        // RFDdiag.R2L.Int_packets_rx, RFDdiag.R2L.Int_min_latency, RFDdiag.R2L.Int_max_latency);
+      opkt->Synch[0] = RFD_SYNCH_0;
+      opkt->Synch[1] = RFD_SYNCH_1;
+      opkt->Command_bytes = L2R_command_len;
+      opkt->Packet_size = sizeof(RFDdiag_packet) + L2R_command_len;
+      if (opkt->Packet_size < L2R_Packet_size)
+        opkt->Packet_size = L2R_Packet_size;
+      opkt->Packet_rate = L2R_Packet_rate;
+      opkt->Int_packets_tx = L2R_Int_packets_tx;
+      opkt->Transmit_SN = L2R_Transmit_SN;
+      opkt->Receive_SN = RFDdiag.R2L.Receive_SN;
+      opkt->Int_packets_rx = RFDdiag.R2L.Int_packets_rx;
+      opkt->Int_min_latency = RFDdiag.R2L.Int_min_latency;
+      opkt->Int_mean_latency = RFDdiag.R2L.Int_mean_latency;
+      opkt->Int_max_latency = RFDdiag.R2L.Int_max_latency;
+      opkt->Int_bytes_rx = RFDdiag.R2L.Int_bytes_rx;
+      opkt->Int_bytes_tx = RFDdiag.L2R.Int_bytes_tx;
+      opkt->Total_valid_packets_rx = RFDdiag.R2L.Total_valid_packets_rx;
+      opkt->Total_invalid_packets_rx = RFDdiag.R2L.Total_invalid_packets_rx;
+      
+      int j;
+      for (j = 0; j < L2R_command_len; ++j) {
+        opkt->Remainder[j] = L2R_command[j];
+      }
+      opkt->Transmit_timestamp = get_timestamp();
+      
+      for (; j < opkt->Packet_size - 2; ++j) {
+        opkt->Remainder[j] = (uint8_t)rand();
+      }
+      crc_set();
+      if (log_tx_pkts) log_packet(opkt);
+      rv = iwrite((char *)opkt, opkt->Packet_size);
+      ++L2R_Transmit_SN;
+      ++Int_packets_tx;
+      --transmit_pkts_pending;
+      Int_bytes_tx += opkt->Packet_size;
+      if (rv) {
+        msg(MSG_DEBUG, "%s: Received error from write", iname);
+        rv = false;
+      }
     }
   }
+  if (transmit_pkts_pending)
+    ELoop->set_gflag(1);
   return rv;
 }
 
@@ -373,6 +379,13 @@ bool RFD_interface::read_error(int my_errno) {
   return false;
 }
 
+bool RFD_interface::protocol_gflag(int flag) {
+  bool rv = false;
+  if (flag & gflag(0)) rv = tm_sync();
+  if (flags & flag & gflag(1)) rv = transmit(0);
+  return rv;
+}
+
 bool RFD_interface::tm_sync() {
   // Update RFDdiag struct with current readings,
   // then clear our interval counters
@@ -400,11 +413,12 @@ bool RFD_interface::tm_sync() {
   RFDdiag.L2R.Int_packets_tx = L2R_Int_packets_tx;
   RFDdiag.L2R.Int_bytes_tx = L2R_Int_bytes_tx;
   RFDdiag.L2R.Total_packets_tx = L2R_Transmit_SN;
-  if (RFDdiag.L2R.Int_packets_tx > 2*L2R_Packet_rate) {
-    msg(MSG_DEBUG, "%s: tx %u %u %u %u", iname,
-      RFDdiag.L2R.Int_packets_tx, L2R_Int_packets_tx,
-      Int_packets_tx, L2R_Packet_rate);
-  }
+  // if (RFDdiag.L2R.Int_packets_tx > 2*L2R_Packet_rate) {
+    // msg(MSG_DEBUG, "%s: tx %u %u %u %u", iname,
+      // RFDdiag.L2R.Int_packets_tx, L2R_Int_packets_tx,
+      // Int_packets_tx, L2R_Packet_rate);
+  // }
+  
   Int_packets_tx = 0;
   Int_bytes_tx = 0;
   return false;
