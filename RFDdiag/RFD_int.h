@@ -70,6 +70,7 @@ class RFD_interface : public DAS_IO::Serial {
     bool write_blocked;
     bool log_tx_pkts;
     int write_pkts_dropped;
+    int write_pkts_dropped2;
 
     // From transmitter:
     void crc_set();

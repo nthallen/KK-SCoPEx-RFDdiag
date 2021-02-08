@@ -26,6 +26,7 @@ RFD_interface::RFD_interface(const char *name,
         write_blocked(false),
         log_tx_pkts(false),
         write_pkts_dropped(0),
+        write_pkts_dropped2(0),
         L2R_Int_packets_tx(0),
         L2R_Int_bytes_tx(0),
         Int_packets_tx(0),
@@ -57,8 +58,8 @@ RFD_interface::RFD_interface(const char *name,
 }
 
 RFD_interface::~RFD_interface() {
-  msg(MSG, "%s: Total write packets dropped: %u",
-    iname, write_pkts_dropped);
+  msg(MSG, "%s: Total write packets dropped: %u, %u",
+    iname, write_pkts_dropped, write_pkts_dropped2);
 }
 
 uint16_t RFD_interface::crc_calc(uint8_t *buf, int len) {
@@ -204,7 +205,7 @@ bool RFD_interface::transmit(uint16_t n_pkts) {
   if (n_pkts > 1)
     write_pkts_dropped += n_pkts-1;
   if (!obuf_empty()) {
-    ++write_pkts_dropped;
+    ++write_pkts_dropped2;
   } else {
     // build the packet
     // msg(MSG_DBG(0), "Transmit Latencies: N:%d min:%d max:%d",
