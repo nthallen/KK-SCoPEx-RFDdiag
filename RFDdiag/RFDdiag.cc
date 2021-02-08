@@ -503,5 +503,7 @@ int main(int argc, char **argv) {
   msg(MSG, "%s %s Starting",
     DAS_IO::AppID.fullname, DAS_IO::AppID.rev);
   ELoop.event_loop();
+  ELoop.delete_children();
+  ELoop.clear_delete_queue(true);
   msg(MSG, "Terminating");
 }
