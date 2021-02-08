@@ -22,7 +22,7 @@ DAS_IO::AppID_t DAS_IO::AppID("RFDdiag", "RFD Performance Diagnostic Tool", "V1.
 
 RFD_interface::RFD_interface(const char *name,
       const char *rfd_port, RFD_tmr *tmr)
-      : DAS_IO::Serial(name, max_packet_size, rfd_port, O_RDWR),
+      : DAS_IO::Serial(name, max_packet_size, rfd_port, O_RDWR|O_NONBLOCK),
         write_blocked(false),
         log_tx_pkts(false),
         write_pkts_dropped(0),
