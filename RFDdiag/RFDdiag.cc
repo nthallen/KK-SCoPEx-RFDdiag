@@ -378,6 +378,11 @@ bool RFD_interface::read_error(int my_errno) {
   return false;
 }
 
+bool RFD_interface::process_eof() {
+  msg(MSG_ERROR, "%s: fh closed unexpectedly", iname);
+  return true;
+}
+
 bool RFD_interface::tm_sync() {
   // Update RFDdiag struct with current readings,
   // then clear our interval counters

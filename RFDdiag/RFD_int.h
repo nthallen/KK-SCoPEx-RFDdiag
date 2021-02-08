@@ -91,6 +91,7 @@ class RFD_interface : public DAS_IO::Serial {
     // From receiver
     bool protocol_input();
     bool read_error(int my_errno);
+    bool process_eof();
     bool tm_sync();
     bool crc_ok();
     const char *recv_port;
