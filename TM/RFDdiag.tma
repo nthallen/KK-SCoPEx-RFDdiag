@@ -105,6 +105,7 @@ state transmit_sequence3 {
     ci_sendfcmd(Cmd_Send, "Local Set Packet Rate %d\n", TX3_O_RATE);
   }
   +1 { ci_sendfcmd(Cmd_Send, "Remote Set Packet Rate %d\n", TX3_I_RATE); }
+  +1 Validate tx_seq_3_L2R;
 }
 
 state tx_seq_3_L2R NoLog {
