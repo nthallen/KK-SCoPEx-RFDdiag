@@ -63,12 +63,20 @@ class RFD_interface : public DAS_IO::Serial {
     bool transmit(uint16_t n_pkts);
     bool tm_sync_too();
   protected:
+    /**
+     * Opens the serial port and sets up for operation.
+     * On failure, sets a timeout for retry.
+     */
+    void connect();
+    void queue_retry();
+    bool protocol_timeout();
     uint16_t crc_calc(uint8_t *buf, int len);
     int32_t get_timestamp();
     const char *ascii_escape();
     void log_packet(RFDdiag_packet *pkt);
     bool write_blocked;
     bool log_tx_pkts;
+    bool connect_waiting;
     int write_pkts_dropped;
     int write_pkts_dropped2;
     const char *RFD_port;

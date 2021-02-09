@@ -26,9 +26,10 @@ int rfd_baud_rate = 57600;
 
 RFD_interface::RFD_interface(const char *name,
       const char *rfd_port, RFD_tmr *tmr)
-      : DAS_IO::Serial(name, max_packet_size, rfd_port, O_RDWR|O_NONBLOCK),
+      : DAS_IO::Serial(name, max_packet_size),
         write_blocked(false),
         log_tx_pkts(false),
+        connect_waiting(false),
         write_pkts_dropped(0),
         write_pkts_dropped2(0),
         RFD_port(rfd_port),
@@ -51,20 +52,56 @@ RFD_interface::RFD_interface(const char *name,
         R2L_Int_max_latency(0),
         R2L_Int_bytes_rx(0),
         R2L_latencies(0) {
-  setup(230400, 8, 'n', 1, 0, 0);
-  hwflow_enable(true);
-  flush_input();
-  update_tc_vmin(L2R_Packet_size,1);
   opkt = (RFDdiag_packet*)new_memory(max_packet_size);
   nl_assert(tmr);
   tmr->set_transmitter(this);
   pkt = (RFDdiag_packet *)buf;
-  flags = Fl_Read | gflag(0);
+  flags = gflag(0);
+  connect();
 }
 
 RFD_interface::~RFD_interface() {
   msg(MSG, "%s: Total write packets dropped: %u, %u",
     iname, write_pkts_dropped, write_pkts_dropped2);
+}
+
+void RFD_interface::connect() {
+  int old_response = set_response(NLRSP_QUIET);
+  init(rfd_port, O_RDWR | O_NONBLOCK);
+  set_response(old_response);
+  if (fd < 0) {
+    if (!connect_waiting) {
+      connect_waiting = true;
+      msg(MSG_ERROR, "%s: Unable to open device %s: %s (%d)",
+        iname, rfd_port, strerror(errno), errno);
+    }
+    queue_retry();
+  } else {
+    if (connect_waiting) {
+      connect_waiting = false;
+      TO.Clear();
+      flags &= ~Fl_Timeout;
+    }
+    msg(MSG, "%s: Successfully opened %s", iname, rfd_port);
+    setup(rfd_baud_rate, 8, 'n', 1, 0, 0);
+    hwflow_enable(true);
+    flush_input();
+    update_tc_vmin(L2R_Packet_size,1);
+    flags |= Fl_Read;
+    if (!obuf_empty())
+      flags |= Fl_Write;
+  }
+}
+
+void RFD_interface::queue_retry() {
+  flags &= ~(Fl_Read | Fl_Write);
+  flags |= Fl_Timeout;
+  TO.Set(5, 0);
+}
+
+bool RFD_interface::protocol_timeout() {
+  connect();
+  return false;
 }
 
 uint16_t RFD_interface::crc_calc(uint8_t *buf, int len) {
@@ -379,13 +416,15 @@ bool RFD_interface::protocol_input() {
 }
 
 bool RFD_interface::read_error(int my_errno) {
-  msg(MSG_ERROR, "%s: read error %d: %s", iname, my_errno, strerror(my_errno));
+  msg(MSG_ERROR, "%s: read error %d: %s", iname,
+    my_errno, strerror(my_errno));
   return false;
 }
 
 bool RFD_interface::process_eof() {
   msg(MSG_ERROR, "%s: fh closed unexpectedly", iname);
-  return true;
+  queue_retry();
+  return false;
 }
 
 bool RFD_interface::tm_sync() {
