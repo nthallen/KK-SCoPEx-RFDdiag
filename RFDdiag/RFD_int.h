@@ -71,6 +71,7 @@ class RFD_interface : public DAS_IO::Serial {
     bool log_tx_pkts;
     int write_pkts_dropped;
     int write_pkts_dropped2;
+    const char *RFD_port;
 
     // From transmitter:
     void crc_set();

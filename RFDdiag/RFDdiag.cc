@@ -20,6 +20,10 @@
 
 DAS_IO::AppID_t DAS_IO::AppID("RFDdiag", "RFD Performance Diagnostic Tool", "V1.0");
 
+bool allow_rmt_commands = false;
+const char *rfd_port;
+int rfd_baud_rate = 57600;
+
 RFD_interface::RFD_interface(const char *name,
       const char *rfd_port, RFD_tmr *tmr)
       : DAS_IO::Serial(name, max_packet_size, rfd_port, O_RDWR|O_NONBLOCK),
@@ -27,6 +31,7 @@ RFD_interface::RFD_interface(const char *name,
         log_tx_pkts(false),
         write_pkts_dropped(0),
         write_pkts_dropped2(0),
+        RFD_port(rfd_port),
         L2R_Int_packets_tx(0),
         L2R_Int_bytes_tx(0),
         Int_packets_tx(0),
@@ -469,9 +474,6 @@ bool RFD_tmr::protocol_input() {
   return  tx ? tx->transmit(n_pkts) : false;
 }
 
-bool allow_rmt_commands = false;
-const char *rfd_port;
-
 void RFDdiag_init_options(int argc, char **argv) {
   int optltr;
 
@@ -481,6 +483,7 @@ void RFDdiag_init_options(int argc, char **argv) {
     switch (optltr) {
       case 'c': allow_rmt_commands = true; break;
       case 'p': rfd_port = optarg; break;
+      case 'b': rfd_baud_rate = atoi(optarg); break;
       case '?':
         msg(3, "Unrecognized Option -%c", optopt);
       default:

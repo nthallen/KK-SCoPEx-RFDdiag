@@ -3,9 +3,10 @@
 <include> msg oui
 <follow> msg
 
-<opts> "cp:"
+<opts> "cp:b:"
 <sort>
   -c allow execution of remote commands
   -p <serial port> the serial port connected to the RFD900+
+  -b <buad rate> the serial port baud rate (57600)
 <init>
   RFDdiag_init_options(argc, argv);
