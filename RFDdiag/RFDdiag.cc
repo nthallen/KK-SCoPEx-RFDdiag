@@ -472,7 +472,7 @@ bool RFD_interface::crc_ok() {
   bool rv = crc == bufcrc;
   if (!rv) {
     msg(MSG_ERROR, "%s: CRC error: recd: %04X calc: %04X", iname, bufcrc, crc);
-    log_packet(pkt);
+    // log_packet(pkt);
   }
   return rv;
 }

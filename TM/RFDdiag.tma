@@ -75,36 +75,84 @@ state transmit_sequence2 {
         > Remote Set Packet Size 150
 }
 
+# outer loop: Step local interface up from 40x100 to 40x300 by by 50
+#   inter loop: Step remote interface up from 10x100 to 10x500 by 50
+# outer loop: Step remote interface up from 40x100 to 40x300 by by 50
+#   inter loop: Step local interface up from 10x100 to 10x500 by 50
+
+%{
+  #define TX3_O_RATE 40
+  #define TX3_I_RATE 10
+  #define TX3_OS_LOW 100
+  #define TX3_OS_HIGH 300
+  #define TX3_OS_STEP 50
+  #define TX3_IS_LOW 100
+  #define TX3_IS_HIGH 500
+  #define TX3_IS_STEP 50
+  int tx3_o_step;
+  int tx3_i_step;
+  #include "dasio/cmd_writer.h"
+%}
 state transmit_sequence3 {
-  { if (RFD_Stale > 60) Validate Shutdown; }
-        > Local Set Packet Size 100
-        > Remote Set Packet Size 100
-        > Local Set Packet Rate 1
-     +4 > Remote Set Packet Rate 1
-  +0:30 > Remote Set Packet Rate 40
-        > Local Set Packet Rate 40
-  +5:00 > Local Set Packet Size 105
-        > Remote Set Packet Size 105
-  +5:00 > Local Set Packet Size 110
-        > Remote Set Packet Size 110
-  +5:00 > Local Set Packet Size 115
-        > Remote Set Packet Size 115
-  +5:00 > Local Set Packet Size 120
-        > Remote Set Packet Size 120
-  +5:00 > Local Set Packet Size 125
-        > Remote Set Packet Size 125
-  +5:00 > Local Set Packet Size 130
-        > Remote Set Packet Size 130
-  +5:00 > Local Set Packet Size 135
-        > Remote Set Packet Size 135
-  +5:00 > Local Set Packet Size 140
-        > Remote Set Packet Size 140
-  +5:00 > Local Set Packet Size 145
-        > Remote Set Packet Size 145
-  +5:00 > Local Set Packet Size 150
-        > Remote Set Packet Size 150
-  +5:00 > Local Set Packet Size 155
-        > Remote Set Packet Size 155
+  { tx3_o_step = TX3_OS_LOW;
+    tx3_i_step = TX3_IS_LOW;
+    ci_sendfcmd(Cmd_Send, "Local Set Packet Size %d\n", tx3_o_step);
+    ci_sendfcmd(Cmd_Send, "Remote Set Packet Size %d\n", tx3_i_step);
+    ci_sendfcmd(Cmd_Send, "Local Set Packet Rate %d\n", TX3_O_RATE);
+  }
+  +1 { ci_sendfcmd(Cmd_Send, "Remote Set Packet Rate %d\n", TX3_I_RATE); }
+}
+
+state tx_seq_3_L2R NoLog {
+  +1:00 {
+    tx3_i_step += TX3_IS_STEP;
+    if (tx3_i_step > TX3_IS_HIGH) {
+      tx3_o_step += TX3_OS_STEP;
+      if (tx3_o_step > TX3_OS_HIGH) {
+        // Setup R2L
+        tx3_o_step = TX3_OS_LOW;
+        tx3_i_step = TX3_IS_LOW;
+        ci_sendfcmd(Cmd_Send, "Local Set Packet Size %d\n", tx3_o_step);
+        ci_sendfcmd(Cmd_Send, "Remote Set Packet Size %d\n", tx3_i_step);
+        ci_sendfcmd(Cmd_Send, "Local Set Packet Rate %d\n", TX3_O_RATE);
+        Validate tx_seq_3_R2L;
+      } else {
+        tx3_i_step = TX3_IS_LOW;
+        ci_sendfcmd(Cmd_Send, "Local Set Packet Size %d\n", tx3_o_step);
+        ci_sendfcmd(Cmd_Send, "Remote Set Packet Size %d\n", tx3_i_step);
+        Validate tx_seq_3_L2R;
+      }
+    } else {
+      ci_sendfcmd(Cmd_Send, "Remote Set Packet Size %d\n", tx3_i_step);
+      Validate tx_seq_3_L2R;
+    }
+  }
+}
+
+state tx_seq_3_R2L NoLog {
+  +1:00 {
+    tx3_i_step += TX3_IS_STEP;
+    if (tx3_i_step > TX3_IS_HIGH) {
+      tx3_o_step += TX3_OS_STEP;
+      if (tx3_o_step > TX3_OS_HIGH) {
+        // Setup L2R
+        tx3_o_step = TX3_OS_LOW;
+        tx3_i_step = TX3_IS_LOW;
+        ci_sendfcmd(Cmd_Send, "Remote Set Packet Size %d\n", tx3_o_step);
+        ci_sendfcmd(Cmd_Send, "Local Set Packet Size %d\n", tx3_i_step);
+        ci_sendfcmd(Cmd_Send, "Remote Set Packet Rate %d\n", TX3_O_RATE);
+        Validate tx_seq_3_L2R;
+      } else {
+        tx3_i_step = TX3_IS_LOW;
+        ci_sendfcmd(Cmd_Send, "Remote Set Packet Size %d\n", tx3_o_step);
+        ci_sendfcmd(Cmd_Send, "Local Set Packet Size %d\n", tx3_i_step);
+        Validate tx_seq_3_R2L;
+      }
+    } else {
+      ci_sendfcmd(Cmd_Send, "Local Set Packet Size %d\n", tx3_i_step);
+      Validate tx_seq_3_R2L;
+    }
+  }
 }
 
 state Shutdown {
