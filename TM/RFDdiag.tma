@@ -1,5 +1,9 @@
 state init {
   > Telemetry Start
+  +1 > Local Set Packet Size 100
+  +1 > Remote Set Packet Size 100
+     > Local Set Packet Rate 1
+  +1 > Local Set Packet Rate 0
   Validate idle;
 }
 
@@ -156,5 +160,11 @@ state tx_seq_3_R2L NoLog {
 }
 
 state Shutdown {
+        > Remote Set Packet Rate 1
+        > Local Set Packet Size 100
+        > Local Set Packet Rate 1
+     +1 > Remote Set Packet Size 100
+     +1 > Remote Set Packet Rate 0
+     +1 > Local Set Packet Rate 0
      +5 > Quit
 }
