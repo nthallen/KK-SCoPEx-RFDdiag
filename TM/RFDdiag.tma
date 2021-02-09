@@ -110,13 +110,7 @@ state tx_seq_3_L2R NoLog {
     if (tx3_i_step > TX3_IS_HIGH) {
       tx3_o_step += TX3_OS_STEP;
       if (tx3_o_step > TX3_OS_HIGH) {
-        // Setup R2L
-        tx3_o_step = TX3_OS_LOW;
-        tx3_i_step = TX3_IS_LOW;
-        ci_sendfcmd(Cmd_Send, "Local Set Packet Size %d\n", tx3_o_step);
-        ci_sendfcmd(Cmd_Send, "Remote Set Packet Size %d\n", tx3_i_step);
-        ci_sendfcmd(Cmd_Send, "Local Set Packet Rate %d\n", TX3_O_RATE);
-        Validate tx_seq_3_R2L;
+        Validate tx_seq_3_R2L_init;
       } else {
         tx3_i_step = TX3_IS_LOW;
         ci_sendfcmd(Cmd_Send, "Local Set Packet Size %d\n", tx3_o_step);
@@ -130,19 +124,24 @@ state tx_seq_3_L2R NoLog {
   }
 }
 
+state tx_seq_3_R2L_init {
+  { tx3_o_step = TX3_OS_LOW;
+    tx3_i_step = TX3_IS_LOW;
+    ci_sendfcmd(Cmd_Send, "Local Set Packet Size %d\n", tx3_i_step);
+    ci_sendfcmd(Cmd_Send, "Remote Set Packet Size %d\n", tx3_o_step);
+    ci_sendfcmd(Cmd_Send, "Local Set Packet Rate %d\n", TX3_I_RATE);
+  }
+  +1 { ci_sendfcmd(Cmd_Send, "Remote Set Packet Rate %d\n", TX3_O_RATE); }
+  +1 Validate tx_seq_3_R2L;
+}
+
 state tx_seq_3_R2L NoLog {
   +1:00 {
     tx3_i_step += TX3_IS_STEP;
     if (tx3_i_step > TX3_IS_HIGH) {
       tx3_o_step += TX3_OS_STEP;
       if (tx3_o_step > TX3_OS_HIGH) {
-        // Setup L2R
-        tx3_o_step = TX3_OS_LOW;
-        tx3_i_step = TX3_IS_LOW;
-        ci_sendfcmd(Cmd_Send, "Remote Set Packet Size %d\n", tx3_o_step);
-        ci_sendfcmd(Cmd_Send, "Local Set Packet Size %d\n", tx3_i_step);
-        ci_sendfcmd(Cmd_Send, "Remote Set Packet Rate %d\n", TX3_O_RATE);
-        Validate tx_seq_3_L2R;
+        Validate transmit_sequence3;
       } else {
         tx3_i_step = TX3_IS_LOW;
         ci_sendfcmd(Cmd_Send, "Remote Set Packet Size %d\n", tx3_o_step);
