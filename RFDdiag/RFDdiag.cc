@@ -246,7 +246,7 @@ bool RFD_interface::transmit(uint16_t n_pkts) {
   bool rv = false;
   if (n_pkts > 1)
     write_pkts_dropped += n_pkts-1;
-  if (!obuf_empty()) {
+  if (fd < 0 || !obuf_empty()) {
     ++write_pkts_dropped2;
   } else {
     // build the packet
