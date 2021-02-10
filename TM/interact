@@ -18,4 +18,4 @@
   Launch      tm_gen RFDcol -v
   Launch      cmd    RFDsrvr -v
   Launch      -      RFDdiag -vv -p $tty_rfd -b 230400 -c
-  Launch      -TMC-  RFDalgo -v
+  Launch      -TMC-  RFDalgo

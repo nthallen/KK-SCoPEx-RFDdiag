@@ -56,7 +56,7 @@ RFD_interface::RFD_interface(const char *name,
   nl_assert(tmr);
   tmr->set_transmitter(this);
   pkt = (RFDdiag_packet *)buf;
-  flags = gflag(0);
+  flags = Fl_Except | gflag(0);
   connect();
 }
 
@@ -66,30 +66,32 @@ RFD_interface::~RFD_interface() {
 }
 
 void RFD_interface::connect() {
-  int old_response = set_response(NLRSP_QUIET);
-  init(rfd_port, O_RDWR | O_NONBLOCK);
-  set_response(old_response);
   if (fd < 0) {
-    if (!connect_waiting) {
-      connect_waiting = true;
-      msg(MSG_ERROR, "%s: Unable to open device %s: %s (%d)",
-        iname, rfd_port, strerror(errno), errno);
+    int old_response = set_response(NLRSP_QUIET);
+    init(rfd_port, O_RDWR | O_NONBLOCK);
+    set_response(old_response);
+    if (fd < 0) {
+      if (!connect_waiting) {
+        connect_waiting = true;
+        msg(MSG_ERROR, "%s: Unable to open device %s: %s (%d)",
+          iname, rfd_port, strerror(errno), errno);
+      }
+      queue_retry();
+    } else {
+      msg(MSG, "%s: Successfully opened %s", iname, rfd_port);
+      setup(rfd_baud_rate, 8, 'n', 1, 0, 0);
+      hwflow_enable(true);
+      flush_input();
+      update_tc_vmin(L2R_Packet_size,1);
+      flags |= Fl_Read;
+      if (!obuf_empty())
+        flags |= Fl_Write;
     }
-    queue_retry();
-  } else {
-    if (connect_waiting) {
-      connect_waiting = false;
-      TO.Clear();
-      flags &= ~Fl_Timeout;
-    }
-    msg(MSG, "%s: Successfully opened %s", iname, rfd_port);
-    setup(rfd_baud_rate, 8, 'n', 1, 0, 0);
-    hwflow_enable(true);
-    flush_input();
-    update_tc_vmin(L2R_Packet_size,1);
-    flags |= Fl_Read;
-    if (!obuf_empty())
-      flags |= Fl_Write;
+  }
+  if (fd >= 0) {
+    connect_waiting = false;
+    TO.Clear();
+    flags &= ~Fl_Timeout;
   }
 }
 
@@ -102,6 +104,12 @@ void RFD_interface::queue_retry() {
 bool RFD_interface::protocol_timeout() {
   connect();
   return false;
+}
+
+bool RFD_interface::protocol_except() {
+  msg(MSG_ERROR, "%s: protocol_except()", iname);
+  close();
+  return process_eof();
 }
 
 uint16_t RFD_interface::crc_calc(uint8_t *buf, int len) {
@@ -535,6 +543,8 @@ void RFDdiag_init_options(int argc, char **argv) {
 
 int main(int argc, char **argv) {
   oui_init_options(argc, argv);
+  msg(MSG, "%s %s Starting",
+    DAS_IO::AppID.fullname, DAS_IO::AppID.rev);
   DAS_IO::Loop ELoop;
   RFD_tmr *tmr = new RFD_tmr();
   ELoop.add_child(tmr);
@@ -548,8 +558,6 @@ int main(int argc, char **argv) {
   RFD_cmd *cmd = new RFD_cmd(tx);
   cmd->connect();
   ELoop.add_child(cmd);
-  msg(MSG, "%s %s Starting",
-    DAS_IO::AppID.fullname, DAS_IO::AppID.rev);
   ELoop.event_loop();
   ELoop.delete_children();
   ELoop.clear_delete_queue(true);

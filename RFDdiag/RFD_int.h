@@ -70,6 +70,7 @@ class RFD_interface : public DAS_IO::Serial {
     void connect();
     void queue_retry();
     bool protocol_timeout();
+    bool protocol_except();
     uint16_t crc_calc(uint8_t *buf, int len);
     int32_t get_timestamp();
     const char *ascii_escape();
