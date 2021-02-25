@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 
+#ifdef UNUSED_CRC_FUNCTIONS
 // Compute the CRC a bit at a time.
 unsigned crc16modbus_bit(unsigned crc, void const *mem, size_t len);
 
@@ -20,6 +21,7 @@ unsigned crc16modbus_rem(unsigned crc, unsigned val, unsigned bits);
 
 // Compute the CRC a byte at a time.
 unsigned crc16modbus_byte(unsigned crc, void const *mem, size_t len);
+#endif
 
 // Compute the CRC a word at a time.
 unsigned crc16modbus_word(unsigned crc, void const *mem, size_t len);
